@@ -1,0 +1,181 @@
+---
+title: "Chapter I: Introduction to Data Analysis with R"
+author:
+- Ani Ghosh (anighosh@ucdavis.edu)
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document: default
+  html_document: default
+urlcolor: blue  
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_knit$set(root.dir = "C:/Users/anibi/Documents/codes/iita_cropmap/data")
+```
+
+## Introduction
+
+In this exercise we introduce you to use R for accessing, reading, visualizing and analyzing different spatial data. We also show you how you to install and use R-packages for this applications. A more detailed introduction is available [here](https://rspatial.org/).  
+
+You can copy the data somewhere in your computer, e.g. I have the data in `C:/Users/anibi/Documents/codes/iita_cropmap/data` directory in my computer. 
+
+Often it is a good practice to tell R where your data is, so that you don't have to specify the directory at every steps. Run the following codes:
+
+```{r setup1, eval=FALSE}
+getwd()
+indir <- "C:/Users/anibi/Documents/codes/iita_cropmap/data"
+setwd(indir)
+getwd()
+```
+
+At any point of time, if you need more information with specific `function`, use `help(function)` or `?function` to learn more about them.
+
+### Installing R-packages
+
+We will install the R-packages as we work through exercises. 
+
+```{r install, eval = FALSE}
+# first install packages
+install.packages('raster')
+install.packages('readxl')
+```
+
+```{r load1}
+# load packages
+library(raster)
+library(readxl)
+```
+
+### Tabular data import and cleaning
+Next we will download and read [crop production statistics]( http://countrystat.org/home.aspx?c=NGA&tr=21) and [administrative boundaries](https://gadm.org/) for Nigeria. 
+
+```{r excel_read}
+ff <- list.files(path = ".", pattern = ".xls$")
+print(ff)
+
+# We will use the PopulationEstimates.xls for some of the analysis 
+pop <- read_excel(ff[2], sheet = 1)
+head(pop)
+```
+
+We probably don't need the first 2 lines of the excel file. We can skip those lines, set a header row and only select data for Arkansas.
+
+```{r clean_excel}
+pop <- read_excel(ff[2], sheet = 1, skip =2)
+head(pop)
+apop <- pop[pop$State == "AR",]
+dim(apop)
+View(apop)
+# We also don't need the first row as it is the population for entire state. Let's drop it from further analysis.
+apop <- apop[-1,]
+head(apop)
+```
+
+### Accessing publicly available data using R
+
+Now we download the US county boundaries from the [Database of Global Administrative Areas](https://gadm.org/) and subset the counties in Arkansas.
+
+```{r gadm}
+us <- getData('GADM', country = 'USA', level = 2)
+# use ?getData to learn more about this function
+
+print(us)
+
+# shows details about the data; you can do plot(us), but I would not recommend that due to the complex boundaries
+ar <- us[us$NAME_1 == "Arkansas",]
+plot(ar)
+```
+
+Next we will try to merge the Arkansas county boundaries with the corresponding population data. There are few minor data cleaning we need to perform before the merging.
+
+### Merge spatial and non-spatial information
+
+```{r merge_gadm_pop}
+# First 5 entries in the country names for the population dataset show the 'County' 
+apop$Area_Name[1:5]
+
+# Let's remove that
+apop$Area_Name <- gsub("County", "", apop$Area_Name)
+
+# Also trim any white space around it
+apop$Area_Name <- trimws(apop$Area_Name)
+
+# Next we drop some of the attributes from the county boundary files and only keep the state/county information
+ar <- ar[,c("NAME_1", "NAME_2")]
+
+# Now we merge the spatial database with the population information with their common attribute,.i.e. county names
+
+arp <- merge(ar, apop, by.x = "NAME_2", by.y = "Area_Name")
+
+# What is in arp now?
+print(arp)
+```
+
+### Visualize (make maps)
+
+Let's visualize the composite dataset we just created.
+
+```{r plot1}
+# We will plot some years of population data
+spplot(arp, c("POP_ESTIMATE_2010", "POP_ESTIMATE_2018"))
+```
+
+This map does not look nice. Let's try to make it better
+```{r plot2}
+mycolor <- rev(heat.colors(nrow(arp)))
+spplot(arp, c("POP_ESTIMATE_2010", "POP_ESTIMATE_2018"), col.regions = mycolor, 
+       names.attr = c("2010","2018"),
+       main = "Population Estimate of Arkansas (2010-18)",
+       colorkey=list(space="bottom", width = 0.75, height = 0.5),
+       scales=list(draw = TRUE))
+```
+
+There are numerous other ways to visualize data in R. Here are some resources:   
+- https://edzer.github.io/sp/    
+- http://geog.uoregon.edu/bartlein/courses/geog495/lec06.html   
+  
+### Processing global accessibility raster layer
+
+Next we will use a global database of travel time to cities in 2015 to summarize the average accessibility of each counties. Note that this is global dataset that we need to crop for our study area. You can learn more about the project from [here](https://map.ox.ac.uk/research-project/accessibility_to_cities/).
+
+```{r accessibility}
+r <- raster("2015_accessibility_to_cities_v1.0.tif")
+names(r) <- "accessibility"
+r <- crop(r, ar)
+plot(r)
+plot(ar, add = T)
+```
+
+Next we estimate county summaries of accessibility measure. The `mean` represents average travel time to an urban centre based solely on the geographical area. 
+
+```{r summary_accessibility}
+ma <- extract(r, ar, fun = mean, sp = TRUE)
+
+spplot(ma, names(r), col.regions = mycolor, main = "average travel time to an urban centre")
+```
+
+Let's explore if there is any relationship between the average travel time and any of the population change statistics.
+
+```{r access_pop, fig.height=10, fig.width=6}
+x <- ma$accessibility
+y <- arp$N_POP_CHG_2018
+plot(y ~ x, xlab = "access", ylab = "net pop change 2018")
+text(y ~ x, labels = ma$NAME_2, cex = 1)
+```
+
+
+```{r osm, eval=FALSE, echo=FALSE}
+# Next we use another R-package to access (open street map)[https://www.openstreetmap.org/] road network data.
+# Install the following packages first
+library(osmdata)
+library(sf)
+
+# First we build a query
+ex <- extent(arp)
+q0 <- opq(bbox = c(ex@xmin,ex@ymin,ex@xmax,ex@ymax), timeout = 100)
+q1 <- add_osm_feature (q0, key="highway")
+osmr <- osmdata_sf(q1)
+```
+
+### AMS Test
