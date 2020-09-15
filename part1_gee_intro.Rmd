@@ -102,7 +102,7 @@ var season = "rain";
 
 print("I like ", season);
 
-// To comment use this
+// To comment use '//'
 // print("Hello Mars!")
 ```
 
@@ -204,7 +204,7 @@ var sum2  = numbers.map(addnumber)
 print("EE client computed objects ", sum2)
 ```
 
-We will see the results are significantly different. `sum1` values are not human readable. This is depends on how Earth Engine works and sooner or later you may come across this kind of situations.   
+We will see the results are significantly different. `sum1` values are not human readable. This is related to Earth Engine internal working mechanism and sooner or later you may come across this kind of situations.   
 
 *Optional* To better understand what is happening here, you can read the section on [client vs server](https://developers.google.com/earth-engine/client_server).
 
@@ -246,7 +246,6 @@ In this exercise, we show how you can search, find and visualize satellite data 
 ](https://developers.google.com/earth-engine/datasets/).
 
 
-
 ## Creating Feature and Feature Collection
 
 ### Search, find and visualize image
@@ -266,11 +265,9 @@ To inspect any image (also called a scene) covering the area of interest (AOI), 
 ```{js Landsat-SR, eval = FALSE}
 var collection = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR');  
 
-
 // Construct start and end dates:
 var start = ee.Date('2018-01-01');
 var end = ee.Date('2018-12-31');     
-
 
 //Filter the Landsat 8 collection using the point and the dates
 var filteredCollection = collection.filterBounds(point).filterDate(start, end);    
@@ -278,19 +275,15 @@ var filteredCollection = collection.filterBounds(point).filterDate(start, end);
 // Inspect number of tiles returned after the search; we will use the one with more tiles
 print(filteredCollection.size());
 
-
 // Also Inspect one file
 var image = filteredCollection.first();
 print(image);
 
-
 // print the band names
 print(image.bandNames());
 
-
 // Center the map on the image.
 Map.centerObject(point, 9);   
-
 
 // Image display
 Map.addLayer(image, {}, "Landsat surface reflectance");    
@@ -386,7 +379,6 @@ iii. Use a threshold to find the water and built locations.
 
 
 ### Cloud Mask
-
 
 So far we worked with the least cloudy image. We are using Landsat Surface Reflectance product for the analysis. 
 This dataset is the atmospherically corrected surface reflectance from the Landsat 8 OLI/TIRS sensors. 

@@ -16,7 +16,7 @@ urlcolor: blue
 Mapping the distribution of crops is important for several applications. A problem with using remote sensing data for crop mapping is the presence of clouds. As crops are typically grown in the rainy seasons, they may be difficult to detect with the commonly used optical reflectance data. Radar remote sensing data is not affected by weather conditions (or the presence of daylight), and that makes it a very interesting alternative to optical data. Here we use Sentinel-1 radar data to map different crop types in Kitale, Kenya. We build on the approaches introduced in the introduction to remote sensing tutorial, but we focus on other aspects (feature creation and model evaluation).
 
 
-TO DO: add link to page on general Sentinel info (some technical specs and where to get)
+For details information on Sentinel-1 SAR data, visit [this page](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar).
 
 
 ## Data

@@ -3,9 +3,3 @@
 .RData
 .Ruserdata
 *.Rproj
-*.zip
-*.bil
-*.hdr
-*.gri
-*.grd
-*.vrt

@@ -51,7 +51,7 @@ vi. <https://aws.amazon.com/public-data-sets/landsat/>
 
 This [web site](http://gisgeography.com/free-satellite-imagery-data-list/) lists 15 sources of freely available remote sensing data.
 
-It is possible to download some satellite data using R-packages. You can use the [MODIS](https://cran.r-project.org/web/packages/MODIS/index.html) or [MODISTools](https://cran.r-project.org/web/packages/MODISTools/index.html) package to search, download and pre-process different [MODIS products](https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table).
+It is possible to download some satellite data using R-packages. You can use [luna](https://github.com/rspatial/luna), [MODIS](https://cran.r-project.org/web/packages/MODIS/index.html) or [MODISTools](https://cran.r-project.org/web/packages/MODISTools/index.html) package to search, download and pre-process different [MODIS products](https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table).
 
 ### Tutorial data  
 
